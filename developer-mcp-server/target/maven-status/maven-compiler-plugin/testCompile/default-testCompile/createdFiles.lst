@@ -1,0 +1,5 @@
+com\devpilot\mcp\DeveloperMcpApplicationTests.class
+com\devpilot\mcp\service\MavenTestExecutorTest$TimedOutProcess.class
+com\devpilot\mcp\service\TestOutputSanitizerTest.class
+com\devpilot\mcp\service\MavenTestExecutorTest.class
+com\devpilot\mcp\service\DeveloperWorkspaceToolsTest.class

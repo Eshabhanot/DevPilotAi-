@@ -1,0 +1,183 @@
+
+package com.devpilot.knowledge.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.stereotype.Component;
+
+@Component
+public class SemanticChunker {
+
+    private static final double SIMILARITY_THRESHOLD = 0.65;
+    private static final int MAX_CHUNK_SIZE = 1200;
+    private static final int MIN_CHUNK_SIZE = 200;
+    private static final int OVERLAP_SIZE = 150;
+
+    private final EmbeddingModel embeddingModel;
+
+    public SemanticChunker(EmbeddingModel embeddingModel) {
+        this.embeddingModel = embeddingModel;
+    }
+
+    public List<String> split(String content) {
+        List<String> sentences = splitSentences(content);
+
+        if (sentences.isEmpty()) {
+            return List.of();
+        }
+
+        List<float[]> embeddings = sentences.stream()
+                .map(sentence ->
+                        embeddingModel.embed(sentence))
+                .toList();
+
+        List<String> chunks = new ArrayList<>();
+        StringBuilder currentChunk = new StringBuilder();
+
+        for (int i = 0; i < sentences.size(); i++) {
+            String sentence = sentences.get(i);
+
+            if (sentence.length() > MAX_CHUNK_SIZE) {
+                if (!currentChunk.isEmpty()) {
+                    chunks.add(currentChunk.toString().trim());
+                    currentChunk.setLength(0);
+                }
+
+                // Hard-split a single oversized sentence.
+                addOversizedSentence(sentence, chunks);
+                continue;
+            }
+
+            if (currentChunk.isEmpty()) {
+                currentChunk.append(sentence);
+                continue;
+            }
+
+            String currentText = currentChunk.toString();
+            int combinedSize = currentText.length()
+                    + 1 + sentence.length();
+
+            double similarity = cosineSimilarity(
+                    embeddings.get(i - 1),
+                    embeddings.get(i));
+
+            boolean semanticBoundary =
+                    similarity < SIMILARITY_THRESHOLD
+                    && currentText.length() >= MIN_CHUNK_SIZE;
+
+            boolean sizeBoundary =
+                    combinedSize > MAX_CHUNK_SIZE;
+
+            if (semanticBoundary || sizeBoundary) {
+                String previousChunk = currentText.trim();
+                chunks.add(previousChunk);
+
+                currentChunk.setLength(0);
+
+                String overlap = getOverlap(previousChunk);
+
+                if (!overlap.isEmpty()
+                        && overlap.length() + 1
+                                + sentence.length() <= MAX_CHUNK_SIZE) {
+                    currentChunk.append(overlap).append(' ');
+                }
+
+                currentChunk.append(sentence);
+            } else {
+                currentChunk.append(' ').append(sentence);
+            }
+        }
+
+        if (!currentChunk.isEmpty()) {
+            chunks.add(currentChunk.toString().trim());
+        }
+
+        return chunks;
+    }
+
+    private List<String> splitSentences(String content) {
+        String normalized = content
+                .replaceAll("\\s+", " ")
+                .trim();
+
+        if (normalized.isEmpty()) {
+            return List.of();
+        }
+
+        return List.of(
+                normalized.split("(?<=[.!?])\\s+"));
+    }
+
+    private double cosineSimilarity(float[] a, float[] b) {
+        if (a.length != b.length) {
+            throw new IllegalArgumentException(
+                    "Embedding dimensions do not match");
+        }
+
+        double dotProduct = 0;
+        double magnitudeA = 0;
+        double magnitudeB = 0;
+
+        for (int i = 0; i < a.length; i++) {
+            dotProduct += a[i] * b[i];
+            magnitudeA += a[i] * a[i];
+            magnitudeB += b[i] * b[i];
+        }
+
+        double denominator =
+                Math.sqrt(magnitudeA) * Math.sqrt(magnitudeB);
+
+        if (denominator == 0) {
+            return 0;
+        }
+
+        return dotProduct / denominator;
+    }
+
+    private String getOverlap(String chunk) {
+        if (chunk.length() <= OVERLAP_SIZE) {
+            return chunk;
+        }
+
+        String overlap = chunk.substring(
+                chunk.length() - OVERLAP_SIZE);
+
+        int firstSpace = overlap.indexOf(' ');
+
+        if (firstSpace >= 0 && firstSpace < overlap.length() - 1) {
+            overlap = overlap.substring(firstSpace + 1);
+        }
+
+        return overlap.trim();
+    }
+
+    private void addOversizedSentence(
+            String sentence, List<String> chunks) {
+
+        int start = 0;
+
+        while (start < sentence.length()) {
+            int end = Math.min(
+                    start + MAX_CHUNK_SIZE,
+                    sentence.length());
+
+            if (end < sentence.length()) {
+                int space = sentence.lastIndexOf(' ', end);
+
+                if (space > start) {
+                    end = space;
+                }
+            }
+
+            chunks.add(sentence.substring(start, end).trim());
+
+            if (end == sentence.length()) {
+                break;
+            }
+
+            start = Math.max(0, end - OVERLAP_SIZE);
+        }
+    }
+}

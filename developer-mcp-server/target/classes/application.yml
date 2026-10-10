@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: developer-mcp-server
+  ai:
+    mcp:
+      server:
+        name: devpilot-developer-tools
+        version: 1.0.0
+        type: SYNC
+        protocol: STREAMABLE
+        instructions: Controlled workspace file operations and approved Maven test execution only.
+        annotation-scanner:
+          enabled: true
+
+server:
+  address: ${DEVPILOT_MCP_BIND_ADDRESS:127.0.0.1}
+  port: ${DEVPILOT_MCP_PORT:8085}
+
+devpilot:
+  workspace:
+    root: ${DEVPILOT_WORKSPACE_ROOT:${user.dir}}
+    max-file-bytes: 524288
+    max-read-characters: 200000
+    max-search-results: 50
+    max-list-results: 200
+    test-timeout: 60s
+    max-test-output-characters: 32000

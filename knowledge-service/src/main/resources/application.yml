@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: knowledge-service
+  
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/devpilot_knowledge}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:esha123}
+
+  servlet:
+     multipart:
+        max-file-size: 10MB
+        max-request-size: 10MB
+
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:sk-cF7uLbesXgsZRt6hg509Rw}
+      base-url: ${OPENAI_BASE_URL:https://openai.generative-eu.engine.capgemini.com/v1}
+      chat:
+         model: ${OPENAI_MODEL:openai.gpt-5.2}
+      embedding:
+         model: ${EMBEDDING_MODEL:amazon.titan-embed-text-v2:0}
+         dimensions: 1024
+    vectorstore:
+      pgvector:
+        initialize-schema: true
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+
+server:
+  port: 8083
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

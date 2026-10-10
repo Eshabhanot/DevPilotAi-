@@ -1,0 +1,60 @@
+
+package com.devpilot.knowledge.service;
+
+import java.util.List;
+import java.util.Map;
+
+import com.devpilot.knowledge.dto.KnowledgeSearchResponse;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.stereotype.Service;
+
+@Service
+public class KnowledgeSearchService {
+
+    private final VectorStore vectorStore;
+    private final QueryRewriteService queryRewriteService;
+
+    public KnowledgeSearchService(
+            VectorStore vectorStore,
+            QueryRewriteService queryRewriteService) {
+        this.vectorStore = vectorStore;
+        this.queryRewriteService = queryRewriteService;
+    }
+
+    public KnowledgeSearchResponse search(
+            String question,
+            List<String> conversationHistory) {
+
+        // 1. Rewrite the question using conversation context.
+        String rewrittenQuery = queryRewriteService.rewrite(
+                question,
+                conversationHistory
+        );
+
+        // 2. Search pgvector using the rewritten query.
+        List<Document> documents = vectorStore.similaritySearch(
+                SearchRequest.builder()
+                        .query(rewrittenQuery)
+                        .topK(5)
+                        .build()
+        );
+
+        // 3. Convert retrieved documents into an API response.
+        List<KnowledgeSearchResponse.SearchResult> results =
+                documents.stream()
+                        .map(document ->
+                                new KnowledgeSearchResponse.SearchResult(
+                                        document.getText(),
+                                        Map.copyOf(document.getMetadata())
+                                ))
+                        .toList();
+
+        return new KnowledgeSearchResponse(
+                question,
+                rewrittenQuery,
+                results
+        );
+    }
+}

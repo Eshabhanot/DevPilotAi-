@@ -1,0 +1,142 @@
+
+package com.devpilot.knowledge.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import org.springframework.stereotype.Component;
+
+@Component
+public class HeadingAwareChunker {
+
+    private static final int MAX_CHUNK_SIZE = 1200;
+    private static final int OVERLAP_SIZE = 150;
+
+    private static final Pattern NUMBERED_HEADING =
+            Pattern.compile("^\\d+(?:\\.\\d+)*\\.?\\s+\\S.*$");
+
+    private static final Pattern MARKDOWN_HEADING =
+            Pattern.compile("^#{1,6}\\s+.+$");
+
+    public record Chunk(String content, String headingPath) {}
+
+    private static class Section {
+        String heading;
+        StringBuilder content = new StringBuilder();
+
+        Section(String heading) {
+            this.heading = heading;
+        }
+    }
+
+    public List<Chunk> split(String text) {
+        List<Chunk> result = new ArrayList<>();
+        List<Section> sections = new ArrayList<>();
+
+        String currentHeading = "General";
+        Section currentSection = new Section(currentHeading);
+
+        String normalized = text.replace("\r\n", "\n").trim();
+
+        for (String rawLine : normalized.split("\n")) {
+            String line = rawLine.trim();
+
+            if (line.isEmpty()) {
+                if (!currentSection.content.isEmpty()) {
+                    currentSection.content.append("\n\n");
+                }
+                continue;
+            }
+
+            if (isHeading(line)) {
+                if (!currentSection.content.isEmpty()) {
+                    sections.add(currentSection);
+                }
+
+                currentHeading = cleanHeading(line);
+                currentSection = new Section(currentHeading);
+            } else {
+                if (!currentSection.content.isEmpty()) {
+                    currentSection.content.append(' ');
+                }
+                currentSection.content.append(line);
+            }
+        }
+
+        if (!currentSection.content.isEmpty()) {
+            sections.add(currentSection);
+        }
+
+        for (Section section : sections) {
+            addSectionChunks(section, result);
+        }
+
+        return result;
+    }
+
+    private boolean isHeading(String line) {
+        if (MARKDOWN_HEADING.matcher(line).matches()) {
+            return true;
+        }
+
+        if (NUMBERED_HEADING.matcher(line).matches()) {
+            return true;
+        }
+
+        // A basic heuristic for plain-text headings extracted from PDFs.
+        return line.length() <= 80
+                && !line.endsWith(".")
+                && !line.endsWith(",")
+                && !line.endsWith(";")
+                && line.matches(".*[A-Za-z].*")
+                && !line.contains("://");
+    }
+
+    private String cleanHeading(String line) {
+        return line.replaceFirst("^#{1,6}\\s+", "").trim();
+    }
+
+    private void addSectionChunks(
+            Section section,
+            List<Chunk> result) {
+
+        String content = section.content.toString().trim();
+
+        if (content.isEmpty()) {
+            return;
+        }
+
+        int start = 0;
+
+        while (start < content.length()) {
+            int end = Math.min(
+                    start + MAX_CHUNK_SIZE,
+                    content.length());
+
+            if (end < content.length()) {
+                int boundary = content.lastIndexOf(' ', end);
+
+                if (boundary > start) {
+                    end = boundary;
+                }
+            }
+
+            String piece = content.substring(start, end).trim();
+
+            String headingPath = section.heading;
+
+            // Prepend the heading to the searchable chunk text.
+            String chunkText = "Heading: " + headingPath
+                    + "\nContent: " + piece;
+
+            result.add(new Chunk(chunkText, headingPath));
+
+            if (end == content.length()) {
+                break;
+            }
+
+            start = Math.max(start + 1, end - OVERLAP_SIZE);
+        }
+    }
+}

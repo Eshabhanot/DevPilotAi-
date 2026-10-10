@@ -1,0 +1,16 @@
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\config\WorkspaceProperties.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\DeveloperMcpApplication.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\dto\FileChange.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\dto\FileContents.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\dto\FileEntry.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\dto\SearchMatch.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\dto\TestExecution.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\dto\ToolResult.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\service\ApprovedTestExecutor.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\service\ApprovedTestService.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\service\MavenTestExecutor.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\service\TestOutputSanitizer.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\service\WorkspaceAccessException.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\service\WorkspaceFileService.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\service\WorkspaceSafety.java
+D:\DevPilotAi\developer-mcp-server\src\main\java\com\devpilot\mcp\tool\DeveloperWorkspaceTools.java

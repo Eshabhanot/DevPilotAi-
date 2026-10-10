@@ -1,0 +1,5 @@
+package com.devpilot.gateway.security;
+
+public class JwtSecurity {
+
+}

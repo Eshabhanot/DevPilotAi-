@@ -1,0 +1,14 @@
+com\devpilot\orchestrator\service\OrchestratorWorkflowServiceTest.class
+com\devpilot\orchestrator\service\ResearchAgentTest.class
+com\devpilot\orchestrator\service\ApprovedTestingAgentTest$FakeMcpWorkspaceClient.class
+com\devpilot\orchestrator\service\OrchestratorWorkflowServiceTest$FakeResearchAgent.class
+com\devpilot\orchestrator\service\OrchestratorWorkflowServiceTest$FakeDocumentationAgent.class
+com\devpilot\orchestrator\service\OrchestratorWorkflowServiceTest$FakeTestingAgent.class
+com\devpilot\orchestrator\service\SummaryDocumentationAgentTest$FakeMcpWorkspaceClient.class
+com\devpilot\orchestrator\service\OrchestratorWorkflowServiceTest$FakePlanningAgent.class
+com\devpilot\orchestrator\service\ResearchAgentTest$FakeMcpWorkspaceClient.class
+com\devpilot\orchestrator\service\OrchestratorWorkflowServiceTest$FakeResearchAgent$1.class
+com\devpilot\orchestrator\service\OrchestratorWorkflowServiceTest$FakeCodingAgent.class
+com\devpilot\orchestrator\service\ApprovedTestingAgentTest.class
+com\devpilot\orchestrator\service\SummaryDocumentationAgentTest.class
+com\devpilot\orchestrator\service\ResearchAgentTest$FakeKnowledgeServiceClient.class

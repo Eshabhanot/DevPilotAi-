@@ -1,0 +1,5 @@
+package com.devpilot.auth.dto;
+
+public record AuthResponse() {
+
+}

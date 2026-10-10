@@ -1,0 +1,80 @@
+
+package com.devpilot.knowledge.controller;
+
+import java.io.IOException;
+import java.util.Map;
+
+import com.devpilot.knowledge.service.DocumentIngestionService;
+import com.devpilot.knowledge.service.PdfExtractionService;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
+@RestController
+@RequestMapping("/api/knowledge/documents")
+public class PdfUploadController {
+
+    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024;
+
+    private final PdfExtractionService pdfExtractionService;
+    private final DocumentIngestionService ingestionService;
+
+    public PdfUploadController(
+            PdfExtractionService pdfExtractionService,
+            DocumentIngestionService ingestionService) {
+        this.pdfExtractionService = pdfExtractionService;
+        this.ingestionService = ingestionService;
+    }
+
+    @PostMapping(
+            value = "/upload",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public Map<String, Object> upload(
+            @RequestParam("file") MultipartFile file) {
+
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Please upload a PDF.");
+        }
+
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new ResponseStatusException(
+                    HttpStatus.PAYLOAD_TOO_LARGE,
+                    "PDF must not exceed 10 MB.");
+        }
+
+        String filename = file.getOriginalFilename();
+
+        if (filename == null
+                || !filename.toLowerCase().endsWith(".pdf")) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Only PDF files are supported.");
+        }
+
+        try {
+            String text = pdfExtractionService.extractText(file);
+
+            int chunks = ingestionService.ingest(filename, text);
+
+            return Map.of(
+                    "message", "PDF processed successfully",
+                    "title", filename,
+                    "chunksStored", chunks
+            );
+
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    exception.getMessage());
+        } catch (IOException exception) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Could not read the PDF file.");
+        }
+    }
+}

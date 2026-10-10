@@ -1,0 +1,5 @@
+package com.devpilot.auth.security;
+
+public class JwtService {
+
+}

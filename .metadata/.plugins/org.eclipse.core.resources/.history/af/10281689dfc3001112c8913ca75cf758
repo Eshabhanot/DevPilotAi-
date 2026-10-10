@@ -1,0 +1,5 @@
+package com.devpilot.auth.entity;
+
+public class User {
+
+}
