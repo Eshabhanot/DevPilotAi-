@@ -61,7 +61,7 @@ describe('NewTaskPage', () => {
 
     expect(screen.getByText('Ensure 100% test branch coverage')).toBeInTheDocument();
 
-    const removeBtn = screen.getByLabelText(/remove constraint 2/i);
+    const removeBtn = screen.getByLabelText(/remove constraint 1/i);
     fireEvent.click(removeBtn);
 
     expect(screen.queryByText('Ensure 100% test branch coverage')).not.toBeInTheDocument();

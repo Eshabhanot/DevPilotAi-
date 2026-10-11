@@ -42,4 +42,27 @@ export const authApi = {
       return false;
     }
   },
+
+  /**
+   * Fetch current user profile
+   */
+  async getCurrentUser() {
+    try {
+      const response = await apiClient.get('/api/auth/me');
+      return response.data;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Remote logout notification
+   */
+  async logout() {
+    try {
+      await apiClient.post('/api/auth/logout');
+    } catch {
+      // Ignore network errors on logout
+    }
+  },
 };

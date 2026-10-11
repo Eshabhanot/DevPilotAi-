@@ -14,9 +14,17 @@ import org.springframework.web.multipart.MultipartFile;
 public class PdfExtractionService {
 
     public String extractText(MultipartFile file) throws IOException {
-        try (InputStream inputStream = file.getInputStream();
-             PDDocument document =
-                     Loader.loadPDF(inputStream.readAllBytes())) {
+        try (InputStream inputStream = file.getInputStream()) {
+            return extractText(inputStream.readAllBytes());
+        }
+    }
+
+    public String extractText(byte[] pdfBytes) throws IOException {
+        if (pdfBytes == null || pdfBytes.length == 0) {
+            throw new IllegalArgumentException("PDF content must not be empty.");
+        }
+
+        try (PDDocument document = Loader.loadPDF(pdfBytes)) {
 
             if (document.isEncrypted()) {
                 throw new IllegalArgumentException(

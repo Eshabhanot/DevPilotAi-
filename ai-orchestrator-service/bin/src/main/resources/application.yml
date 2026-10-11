@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: ai-orchestrator-service
+
+server:
+  port: 8084
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+devpilot:
+  knowledge:
+    base-url: ${KNOWLEDGE_SERVICE_BASE_URL:http://localhost:8083}
+    connect-timeout: ${KNOWLEDGE_SERVICE_CONNECT_TIMEOUT:2s}
+    read-timeout: ${KNOWLEDGE_SERVICE_READ_TIMEOUT:20s}
+  orchestrator:
+    max-repair-attempts: ${ORCHESTRATOR_MAX_REPAIR_ATTEMPTS:2}
+    task-timeout: ${ORCHESTRATOR_TASK_TIMEOUT:5m}
+    test-timeout: ${ORCHESTRATOR_TEST_TIMEOUT:60s}
+  mcp:
+    workspace-root: ${DEVPILOT_WORKSPACE_ROOT:${user.dir}}

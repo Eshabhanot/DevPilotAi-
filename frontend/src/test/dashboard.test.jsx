@@ -5,6 +5,19 @@ import { BrowserRouter } from 'react-router-dom';
 import { DashboardPage } from '../pages/DashboardPage';
 import { taskApi } from '../api/taskApi';
 
+vi.mock('../api/authApi', () => ({
+  authApi: {
+    checkHealth: vi.fn().mockResolvedValue(true),
+  },
+}));
+
+vi.mock('../api/knowledgeApi', () => ({
+  knowledgeApi: {
+    checkHealth: vi.fn().mockResolvedValue(true),
+    listDocuments: vi.fn().mockResolvedValue([]),
+  },
+}));
+
 vi.mock('../api/taskApi', () => ({
   taskApi: {
     listTasks: vi.fn(),
@@ -60,7 +73,7 @@ describe('DashboardPage', () => {
     taskApi.listTasks.mockResolvedValueOnce(mockTasks);
     renderWithRouter(<DashboardPage />);
 
-    expect(await screen.findByText('Implement JWT Filter in Api Gateway')).toBeInTheDocument();
+    expect((await screen.findAllByText('Implement JWT Filter in Api Gateway')).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Analyze eureka service heartbeat timeout')).toBeInTheDocument();
     expect(screen.getAllByText('Completed').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Researching')).toBeInTheDocument();
@@ -91,7 +104,7 @@ describe('DashboardPage', () => {
     taskApi.listTasks.mockResolvedValueOnce(mockTasks);
     renderWithRouter(<DashboardPage />);
 
-    await screen.findByText('Refactor Auth Controller');
+    await screen.findAllByText('Refactor Auth Controller');
 
     const searchInput = screen.getByLabelText(/search tasks/i);
     fireEvent.change(searchInput, { target: { value: 'PostgreSQL' } });

@@ -46,3 +46,8 @@ management:
     web:
       exposure:
         include: health,info
+
+devpilot:
+  knowledge:
+    startup-ingestion:
+      enabled: ${KNOWLEDGE_STARTUP_INGESTION_ENABLED:true}

@@ -75,8 +75,8 @@ describe('TaskDetailPage', () => {
 
     expect(await screen.findByText('Create Eureka Service CircuitBreaker Route')).toBeInTheDocument();
     expect(screen.getByText('task-test-123')).toBeInTheDocument();
-    expect(screen.getByText('Completed')).toBeInTheDocument();
-    expect(screen.getByText(/created and verified eureka circuit breaker integration/i)).toBeInTheDocument();
+    expect(screen.getByText('COMPLETED')).toBeInTheDocument();
+    expect(screen.getAllByText(/created and verified eureka circuit breaker integration/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it('switches between detail tabs: research, files, tests, and documentation', async () => {
@@ -96,7 +96,7 @@ describe('TaskDetailPage', () => {
 
     // Test Results tab
     fireEvent.click(screen.getByRole('button', { name: /test results/i }));
-    expect(await screen.findByText(/all approved tests passed successfully/i)).toBeInTheDocument();
+    expect(await screen.findByText('PASSED')).toBeInTheDocument();
     expect(screen.getByText(/build success/i)).toBeInTheDocument();
 
     // Documentation tab

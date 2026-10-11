@@ -34,11 +34,24 @@ export function AuthProvider({ children }) {
       const response = await authApi.login({ email, password });
       const authToken = response.token;
       const expiresIn = response.expiresIn || 900;
-      const userInfo = { email };
+      let userInfo = { email, name: email.split('@')[0] };
 
       tokenStorage.setToken(authToken, expiresIn, userInfo);
       setToken(authToken);
       setUser(userInfo);
+
+      // Attempt to load full profile
+      try {
+        const profile = await authApi.getCurrentUser();
+        if (profile?.name) {
+          userInfo = { ...userInfo, name: profile.name, role: profile.role };
+          tokenStorage.setToken(authToken, expiresIn, userInfo);
+          setUser(userInfo);
+        }
+      } catch {
+        // Fallback to email-derived name
+      }
+
       return response;
     } catch (err) {
       const message = err.userMessage || 'Login failed. Please check your credentials.';
@@ -80,6 +93,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(() => {
+    authApi.logout();
     tokenStorage.clear();
     setToken(null);
     setUser(null);
@@ -115,7 +129,19 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    return {
+      token: tokenStorage.getToken(),
+      user: tokenStorage.getUser(),
+      isAuthenticated: Boolean(tokenStorage.getToken()),
+      loading: false,
+      authError: null,
+      sessionMessage: null,
+      login: async () => {},
+      register: async () => {},
+      logout: () => {},
+      clearAuthError: () => {},
+      clearSessionMessage: () => {},
+    };
   }
   return context;
 }

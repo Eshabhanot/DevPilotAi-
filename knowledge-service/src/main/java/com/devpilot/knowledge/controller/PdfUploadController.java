@@ -3,8 +3,10 @@ package com.devpilot.knowledge.controller;
 
 import com.devpilot.knowledge.service.DocumentIngestionService;
 import com.devpilot.knowledge.service.PdfExtractionService;
+import com.devpilot.knowledge.dto.KnowledgeDocumentResponse;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,11 @@ public class PdfUploadController {
             DocumentIngestionService documentIngestionService) {
         this.pdfExtractionService = pdfExtractionService;
         this.documentIngestionService = documentIngestionService;
+    }
+
+    @GetMapping
+    public List<KnowledgeDocumentResponse> listDocuments() {
+        return documentIngestionService.listDocuments();
     }
 
     @PostMapping(
@@ -65,7 +72,8 @@ public class PdfUploadController {
             }
 
             // 4. Validate the PDF signature.
-            if (!hasPdfSignature(file)) {
+            byte[] pdfBytes = file.getBytes();
+            if (!hasPdfSignature(pdfBytes)) {
                 return error(
                         HttpStatus.BAD_REQUEST,
                         "INVALID_PDF",
@@ -74,7 +82,7 @@ public class PdfUploadController {
 
             // 5. Extract text from the PDF.
             String extractedText =
-                    pdfExtractionService.extractText(file);
+                    pdfExtractionService.extractText(pdfBytes);
 
             if (extractedText == null
                     || extractedText.isBlank()) {
@@ -94,7 +102,11 @@ public class PdfUploadController {
 
             int chunksStored = documentIngestionService.ingest(
                     safeTitle,
-                    extractedText);
+                    extractedText,
+                    file.getSize(),
+                    "upload",
+                    "upload:" + safeTitle,
+                    sha256(pdfBytes));
 
             if (chunksStored == 0) {
                 return error(
@@ -130,22 +142,23 @@ public class PdfUploadController {
         }
     }
 
-    private boolean hasPdfSignature(MultipartFile file)
-            throws IOException {
+    private boolean hasPdfSignature(byte[] bytes) {
+        return bytes.length >= 5
+                && bytes[0] == '%'
+                && bytes[1] == 'P'
+                && bytes[2] == 'D'
+                && bytes[3] == 'F'
+                && bytes[4] == '-';
+    }
 
-        byte[] header = new byte[5];
-
-        try (var inputStream = file.getInputStream()) {
-            if (inputStream.read(header) != header.length) {
-                return false;
-            }
+    private String sha256(byte[] bytes) {
+        try {
+            return java.util.HexFormat.of().formatHex(
+                    java.security.MessageDigest.getInstance("SHA-256")
+                            .digest(bytes));
+        } catch (java.security.NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable.", exception);
         }
-
-        return header[0] == '%'
-                && header[1] == 'P'
-                && header[2] == 'D'
-                && header[3] == 'F'
-                && header[4] == '-';
     }
 
     private ResponseEntity<Map<String, Object>> error(
